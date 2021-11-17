@@ -148,6 +148,7 @@ void SK::Ser_gs() {
 		print();
 	}
 }
+
 void SK::print() {
 	system("cls");
 	for (int i = 0; i < 10; i++) {
