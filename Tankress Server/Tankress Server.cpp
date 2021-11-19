@@ -114,6 +114,12 @@ void SK::Ser_open() {
 }
 void SK::con1() {
 	recv(allClientSocket[0], (char*)Coordinate1, sizeof(Coordinate1), 0);
+	/*
+	if (Coordinate1[3] = ntohl(Coordinate1[3]) == 1) {
+		Coordinate1[3] = ntohl(Coordinate1[3];
+		Coordinate1[3] = 2;
+	}
+	*/
 	send(allClientSocket[1], (char*)Coordinate1, sizeof(Coordinate1), 0);
 	send(allClientSocket[2], (char*)Coordinate1, sizeof(Coordinate1), 0);
 	for (int i = 0; i < 3; i++) {
