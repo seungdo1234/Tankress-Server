@@ -198,7 +198,7 @@ void SK::con2() {
 		}
 		if (Coordinate2[2] == 3) {
 			for (int i = 1; i < 4; i++) {
-				if (Coordinate2[1] + i < 0 || Sermap[Coordinate2[0]][Coordinate2[1] + i] == 1) {
+				if (Coordinate2[1] - i < 0 || Sermap[Coordinate2[0]][Coordinate2[1] - i] == 1) {
 					break;
 				}
 				Sermap[Coordinate2[0]][Coordinate2[1] - i] = 6;
@@ -241,7 +241,7 @@ void SK::con3() {
 		}
 		if (Coordinate3[2] == 3) {
 			for (int i = 1; i < 4; i++) {
-				if (Coordinate3[1] + i < 0 || Sermap[Coordinate3[0]][Coordinate3[1] + i] == 1) {
+				if (Coordinate3[1] - i < 0 || Sermap[Coordinate3[0]][Coordinate3[1] - i] == 1) {
 					break;
 				}
 				Sermap[Coordinate3[0]][Coordinate3[1] - i] = 6;
@@ -268,40 +268,7 @@ void SK::con3() {
 }
 void SK::shoot() {
 
-	if (Coordinate2[3] == 1) {
-		if (Coordinate2[2] == 2) {
-			for (int i = 1; i < 4; i++) {
-				if (Coordinate2[1] + i > 9 || Sermap[Coordinate2[0]][Coordinate2[1] + i] == 1) {
-					break;
-				}
-				Sermap[Coordinate2[0]][Coordinate2[1] + i] = 6;
-			}
-		}
-		if (Coordinate2[2] == 3) {
-			for (int i = 1; i < 4; i++) {
-				if (Coordinate2[1] + i < 0 || Sermap[Coordinate2[0]][Coordinate2[1] + i] == 1) {
-					break;
-				}
-				Sermap[Coordinate2[0]][Coordinate2[1] - i] = 6;
-			}
-		}
-		if (Coordinate2[2] == 4) {
-			for (int i = 1; i < 4; i++) {
-				if (Coordinate2[0] - i < 0 || Sermap[Coordinate2[0] - i][Coordinate2[1]] == 1) {
-					break;
-				}
-				Sermap[Coordinate2[0] - i][Coordinate2[1]] = 7;
-			}
-		}
-		if (Coordinate2[2] == 5) {
-			for (int i = 1; i < 4; i++) {
-				if (Coordinate2[0] + i > 9 || Sermap[Coordinate2[0] + i][Coordinate2[1]] == 1) {
-					break;
-				}
-				Sermap[Coordinate2[0] + i][Coordinate2[1]] = 7;
-			}
-		}
-	}
+
 }
 void SK::Ser_gs() {
 	Ser_open();
