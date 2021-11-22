@@ -28,7 +28,7 @@ private:
 	int Coordinate2[5] = { 0, };
 	int Coordinate3[5] = { 0, };
 	int clientNumber = 0;
-	int player[1] = { 0, };
+	int player[4] = { 0, };
 	int allClientSocket[100];
 	SOCKET servsoc;
 	SOCKET clisoc;
@@ -92,9 +92,26 @@ void SK::Ser_open() {
 	while (1) {
 		allClientSocket[clientNumber] = accept(servsoc, (struct sockaddr*)&clientAddress, &clientAddressSize);
 		cout << "  " << clientNumber + 1 << "번째 플레이어가 접속 했습니다.  서버 인원 : [" << clientNumber + 1 << "/3]" << endl;
-		player[0] = clientNumber+1;
-		player[0] = ntohl(player[0]);
-		send(allClientSocket[clientNumber], (char*)player ,sizeof(player), 0);
+		player[0] = clientNumber + 1;
+		if (clientNumber == 0) {
+			player[1] = 8;
+			player[2] = 0;
+			player[3] = 2;
+		}
+		if (clientNumber == 1) {
+			player[1] = 6;
+			player[2] = 9;
+			player[3] = 3;
+		}
+		if (clientNumber == 2) {
+			player[1] = 0;
+			player[2] = 5;
+			player[3] = 5;
+		}
+		for (int i = 0; i < 4; i++) {
+			player[i] = ntohl(player[i]);
+		}
+		send(allClientSocket[clientNumber], (char*)player, sizeof(player), 0);
 		clientNumber++;
 		if (clientNumber == 3) {
 			cout << "  게임시작 인원이 충족되었습니다. " << endl;
@@ -119,36 +136,14 @@ void SK::Ser_open() {
 	Sleep(3000);
 }
 void SK::con1() {
-		recv(allClientSocket[0], (char*)Coordinate1, sizeof(Coordinate1), 0);
-		send(allClientSocket[1], (char*)Coordinate1, sizeof(Coordinate1), 0);
-		send(allClientSocket[2], (char*)Coordinate1, sizeof(Coordinate1), 0);
-		for (int i = 0; i < 5; i++) {
-			Coordinate1[i] = ntohl(Coordinate1[i]);
-			}
-		Sermap[Coordinate1[0]][Coordinate1[1]] = Coordinate1[2];
-
-}
-void SK::con2() {
-		recv(allClientSocket[1], (char*)Coordinate2, sizeof(Coordinate2), 0);
-		send(allClientSocket[0], (char*)Coordinate2, sizeof(Coordinate2), 0);
-		send(allClientSocket[2], (char*)Coordinate2, sizeof(Coordinate2), 0);
-		for (int i = 0; i < 5; i++) {
-			Coordinate2[i] = ntohl(Coordinate2[i]);
-		}
-		Sermap[Coordinate2[0]][Coordinate2[1]] = Coordinate2[2];
+	recv(allClientSocket[0], (char*)Coordinate1, sizeof(Coordinate1), 0);
+	send(allClientSocket[1], (char*)Coordinate1, sizeof(Coordinate1), 0);
+	send(allClientSocket[2], (char*)Coordinate1, sizeof(Coordinate1), 0);
+	for (int i = 0; i < 5; i++) {
+		Coordinate1[i] = ntohl(Coordinate1[i]);
 	}
-void SK::con3() {
-		recv(allClientSocket[2], (char*)Coordinate3, sizeof(Coordinate3), 0);
-		send(allClientSocket[0], (char*)Coordinate3, sizeof(Coordinate3), 0);
-		send(allClientSocket[1], (char*)Coordinate3, sizeof(Coordinate3), 0);
-		for (int i = 0; i < 5; i++) {
-			Coordinate3[i] = ntohl(Coordinate3[i]);
-		}
-		Sermap[Coordinate3[0]][Coordinate3[1]] = Coordinate3[2];
-}
-void SK::shoot() {
 	if (Coordinate1[3] == 1) {
-		if(Coordinate1[2] == 2) {
+		if (Coordinate1[2] == 2) {
 			for (int i = 1; i < 4; i++) {
 				if (Coordinate1[1] + i > 9 || Sermap[Coordinate1[0]][Coordinate1[1] + i] == 1) {
 					break;
@@ -181,6 +176,17 @@ void SK::shoot() {
 			}
 		}
 	}
+	Sermap[Coordinate1[0]][Coordinate1[1]] = Coordinate1[2];
+
+}
+void SK::con2() {
+	recv(allClientSocket[1], (char*)Coordinate2, sizeof(Coordinate2), 0);
+	send(allClientSocket[0], (char*)Coordinate2, sizeof(Coordinate2), 0);
+	send(allClientSocket[2], (char*)Coordinate2, sizeof(Coordinate2), 0);
+	for (int i = 0; i < 5; i++) {
+		Coordinate2[i] = ntohl(Coordinate2[i]);
+	}
+
 	if (Coordinate2[3] == 1) {
 		if (Coordinate2[2] == 2) {
 			for (int i = 1; i < 4; i++) {
@@ -189,7 +195,7 @@ void SK::shoot() {
 				}
 				Sermap[Coordinate2[0]][Coordinate2[1] + i] = 6;
 			}
-			}
+		}
 		if (Coordinate2[2] == 3) {
 			for (int i = 1; i < 4; i++) {
 				if (Coordinate2[1] + i < 0 || Sermap[Coordinate2[0]][Coordinate2[1] + i] == 1) {
@@ -208,12 +214,21 @@ void SK::shoot() {
 		}
 		if (Coordinate2[2] == 5) {
 			for (int i = 1; i < 4; i++) {
-				if (Coordinate2[0] + i  > 9 || Sermap[Coordinate2[0] + i][Coordinate2[1]] == 1) {
+				if (Coordinate2[0] + i > 9 || Sermap[Coordinate2[0] + i][Coordinate2[1]] == 1) {
 					break;
 				}
 				Sermap[Coordinate2[0] + i][Coordinate2[1]] = 7;
 			}
 		}
+	}
+	Sermap[Coordinate2[0]][Coordinate2[1]] = Coordinate2[2];
+}
+void SK::con3() {
+	recv(allClientSocket[2], (char*)Coordinate3, sizeof(Coordinate3), 0);
+	send(allClientSocket[0], (char*)Coordinate3, sizeof(Coordinate3), 0);
+	send(allClientSocket[1], (char*)Coordinate3, sizeof(Coordinate3), 0);
+	for (int i = 0; i < 5; i++) {
+		Coordinate3[i] = ntohl(Coordinate3[i]);
 	}
 	if (Coordinate3[3] == 1) {
 		if (Coordinate3[2] == 2) {
@@ -249,6 +264,44 @@ void SK::shoot() {
 			}
 		}
 	}
+	Sermap[Coordinate3[0]][Coordinate3[1]] = Coordinate3[2];
+}
+void SK::shoot() {
+
+	if (Coordinate2[3] == 1) {
+		if (Coordinate2[2] == 2) {
+			for (int i = 1; i < 4; i++) {
+				if (Coordinate2[1] + i > 9 || Sermap[Coordinate2[0]][Coordinate2[1] + i] == 1) {
+					break;
+				}
+				Sermap[Coordinate2[0]][Coordinate2[1] + i] = 6;
+			}
+		}
+		if (Coordinate2[2] == 3) {
+			for (int i = 1; i < 4; i++) {
+				if (Coordinate2[1] + i < 0 || Sermap[Coordinate2[0]][Coordinate2[1] + i] == 1) {
+					break;
+				}
+				Sermap[Coordinate2[0]][Coordinate2[1] - i] = 6;
+			}
+		}
+		if (Coordinate2[2] == 4) {
+			for (int i = 1; i < 4; i++) {
+				if (Coordinate2[0] - i < 0 || Sermap[Coordinate2[0] - i][Coordinate2[1]] == 1) {
+					break;
+				}
+				Sermap[Coordinate2[0] - i][Coordinate2[1]] = 7;
+			}
+		}
+		if (Coordinate2[2] == 5) {
+			for (int i = 1; i < 4; i++) {
+				if (Coordinate2[0] + i > 9 || Sermap[Coordinate2[0] + i][Coordinate2[1]] == 1) {
+					break;
+				}
+				Sermap[Coordinate2[0] + i][Coordinate2[1]] = 7;
+			}
+		}
+	}
 }
 void SK::Ser_gs() {
 	Ser_open();
@@ -256,7 +309,7 @@ void SK::Ser_gs() {
 		con1();
 		con2();
 		con3();
-		shoot();
+	//	shoot();
 		print();
 	}
 }
@@ -270,12 +323,12 @@ void SK::print() {
 			if (Sermap[i][j] == 3) cout << "◀";
 			if (Sermap[i][j] == 4) cout << "▲";
 			if (Sermap[i][j] == 5) cout << "▼";
-			if (Sermap[i][j] == 6) { 
-				cout << "ㅡ"; 
+			if (Sermap[i][j] == 6) {
+				cout << "ㅡ";
 				Sermap[i][j] = 0;
 			}
-			if (Sermap[i][j] == 7) { 
-				cout << "ㅣ"; 
+			if (Sermap[i][j] == 7) {
+				cout << "ㅣ";
 				Sermap[i][j] = 0;
 			}
 		}
