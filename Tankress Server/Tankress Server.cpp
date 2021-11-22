@@ -14,9 +14,8 @@ using namespace std;
 #pragma comment (lib , "ws2_32.lib")
 #pragma warning(disable:4996)
 HANDLE  mutex;
-int clientNumber = 0;
 unsigned  threadID;
-int allClientSocket[100];
+
 
 class SK {
 private:
@@ -28,6 +27,9 @@ private:
 	int Coordinate1[5] = { 0, };
 	int Coordinate2[5] = { 0, };
 	int Coordinate3[5] = { 0, };
+	int clientNumber = 0;
+	int player[1] = { 0, };
+	int allClientSocket[100];
 	SOCKET servsoc;
 	SOCKET clisoc;
 	int index[3] = { 0 , };
@@ -90,24 +92,27 @@ void SK::Ser_open() {
 	while (1) {
 		allClientSocket[clientNumber] = accept(servsoc, (struct sockaddr*)&clientAddress, &clientAddressSize);
 		cout << "  " << clientNumber + 1 << "번째 플레이어가 접속 했습니다.  서버 인원 : [" << clientNumber + 1 << "/3]" << endl;
+		player[0] = clientNumber+1;
+		player[0] = ntohl(player[0]);
+		send(allClientSocket[clientNumber], (char*)player ,sizeof(player), 0);
 		clientNumber++;
-		if (clientNumber == 2) {
+		if (clientNumber == 3) {
 			cout << "  게임시작 인원이 충족되었습니다. " << endl;
 			break;
 		}
 	}
 	cout << "  게임모드를 설정하시오. 1) 비안개모드 2) 안개모드 : ";
-	cin >> index[1];
+	cin >> index[0];
 	cout << "\n  탱크이동시간을 설정하시오 (500~1000) : ";
-	cin >> index[2];
+	cin >> index[1];
 	system("cls");
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 2; i++) {
 		index[i] = ntohl(index[i]);
 	}
 	for (int i = 0; i < 3; i++) {
 		send(allClientSocket[i], (char*)index, sizeof(index), 0);
 	}
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 2; i++) {
 		index[i] = ntohl(index[i]);
 	}
 	cout << "\n  탱크리스를 시작하겠습니다. " << endl;
@@ -116,7 +121,7 @@ void SK::Ser_open() {
 void SK::con1() {
 		recv(allClientSocket[0], (char*)Coordinate1, sizeof(Coordinate1), 0);
 		send(allClientSocket[1], (char*)Coordinate1, sizeof(Coordinate1), 0);
-	//	send(allClientSocket[2], (char*)Coordinate1, sizeof(Coordinate1), 0);
+		send(allClientSocket[2], (char*)Coordinate1, sizeof(Coordinate1), 0);
 		for (int i = 0; i < 5; i++) {
 			Coordinate1[i] = ntohl(Coordinate1[i]);
 			}
@@ -124,16 +129,15 @@ void SK::con1() {
 
 }
 void SK::con2() {
-		int num = recv(allClientSocket[1], (char*)Coordinate2, sizeof(Coordinate2), 0);
+		recv(allClientSocket[1], (char*)Coordinate2, sizeof(Coordinate2), 0);
 		send(allClientSocket[0], (char*)Coordinate2, sizeof(Coordinate2), 0);
-	//	send(allClientSocket[2], (char*)Coordinate2, sizeof(Coordinate2), 0);
+		send(allClientSocket[2], (char*)Coordinate2, sizeof(Coordinate2), 0);
 		for (int i = 0; i < 5; i++) {
 			Coordinate2[i] = ntohl(Coordinate2[i]);
 		}
 		Sermap[Coordinate2[0]][Coordinate2[1]] = Coordinate2[2];
 	}
 void SK::con3() {
-	if (Coordinate3[3] != 2) {
 		recv(allClientSocket[2], (char*)Coordinate3, sizeof(Coordinate3), 0);
 		send(allClientSocket[0], (char*)Coordinate3, sizeof(Coordinate3), 0);
 		send(allClientSocket[1], (char*)Coordinate3, sizeof(Coordinate3), 0);
@@ -141,66 +145,107 @@ void SK::con3() {
 			Coordinate3[i] = ntohl(Coordinate3[i]);
 		}
 		Sermap[Coordinate3[0]][Coordinate3[1]] = Coordinate3[2];
-	}
 }
 void SK::shoot() {
 	if (Coordinate1[3] == 1) {
 		if(Coordinate1[2] == 2) {
 			for (int i = 1; i < 4; i++) {
-				if(Coordinate1[1] + i <10 && Sermap[Coordinate1[0]][Coordinate1[1] + i] != 1){
-				Sermap[Coordinate1[0]][Coordinate1[1] + i] = 6;
+				if (Coordinate1[1] + i > 9 || Sermap[Coordinate1[0]][Coordinate1[1] + i] == 1) {
+					break;
 				}
+				Sermap[Coordinate1[0]][Coordinate1[1] + i] = 6;
 			}
 		}
 		if (Coordinate1[2] == 3) {
 			for (int i = 1; i < 4; i++) {
-				if (Coordinate1[1] - i >= 0 && Sermap[Coordinate1[0]][Coordinate1[1] - i] != 1){
-					Sermap[Coordinate1[0]][Coordinate1[1] - i] = 6;
+				if (Coordinate1[1] - i < 0 || Sermap[Coordinate1[0]][Coordinate1[1] - i] == 1) {
+					break;
 				}
+				Sermap[Coordinate1[0]][Coordinate1[1] - i] = 6;
 			}
 		}
 		if (Coordinate1[2] == 4) {
 			for (int i = 1; i < 4; i++) {
-				if (Coordinate1[0] - i >= 0 && Sermap[Coordinate1[0]-i][Coordinate1[1]] != 1) {
-					Sermap[Coordinate1[0] - i][Coordinate1[1]] = 7;
+				if (Coordinate1[0] - i < 0 || Sermap[Coordinate1[0] - i][Coordinate1[1]] == 1) {
+					break;
 				}
+				Sermap[Coordinate1[0] - i][Coordinate1[1]] = 7;
 			}
 		}
 		if (Coordinate1[2] == 5) {
 			for (int i = 1; i < 4; i++) {
-				if (Coordinate1[0] + i < 10 && Sermap[Coordinate1[0] + i][Coordinate1[1]] != 1) {
-					Sermap[Coordinate1[0] + i][Coordinate1[1]] = 7;
+				if (Coordinate1[0] + i > 9 || Sermap[Coordinate1[0] + i][Coordinate1[1]] == 1) {
+					break;
 				}
+				Sermap[Coordinate1[0] + i][Coordinate1[1]] = 7;
 			}
 		}
 	}
 	if (Coordinate2[3] == 1) {
 		if (Coordinate2[2] == 2) {
 			for (int i = 1; i < 4; i++) {
-				if (Coordinate2[1] + i < 10 && Sermap[Coordinate2[0]][Coordinate2[1] + i] != 1) {
-					Sermap[Coordinate2[0]][Coordinate2[1] + i] = 6;
+				if (Coordinate2[1] + i > 9 || Sermap[Coordinate2[0]][Coordinate2[1] + i] == 1) {
+					break;
 				}
+				Sermap[Coordinate2[0]][Coordinate2[1] + i] = 6;
 			}
 			}
 		if (Coordinate2[2] == 3) {
 			for (int i = 1; i < 4; i++) {
-				if (Coordinate2[1] - i >= 0 && Sermap[Coordinate2[0]][Coordinate2[1] - i] != 1) {
-					Sermap[Coordinate2[0]][Coordinate2[1] - i] = 6;
+				if (Coordinate2[1] + i < 0 || Sermap[Coordinate2[0]][Coordinate2[1] + i] == 1) {
+					break;
 				}
+				Sermap[Coordinate2[0]][Coordinate2[1] - i] = 6;
 			}
 		}
 		if (Coordinate2[2] == 4) {
 			for (int i = 1; i < 4; i++) {
-				if (Coordinate2[0] - i < 10 && Sermap[Coordinate2[0] - i][Coordinate2[1]] != 1) {
-					Sermap[Coordinate2[0] - i][Coordinate2[1]] = 7;
+				if (Coordinate2[0] - i < 0 || Sermap[Coordinate2[0] - i][Coordinate2[1]] == 1) {
+					break;
 				}
+				Sermap[Coordinate2[0] - i][Coordinate2[1]] = 7;
 			}
 		}
 		if (Coordinate2[2] == 5) {
 			for (int i = 1; i < 4; i++) {
-				if (Coordinate2[0] + i < 10 && Sermap[Coordinate2[0] + i][Coordinate2[1]] != 1) {
-					Sermap[Coordinate2[0] + i][Coordinate2[1]] = 7;
+				if (Coordinate2[0] + i  > 9 || Sermap[Coordinate2[0] + i][Coordinate2[1]] == 1) {
+					break;
 				}
+				Sermap[Coordinate2[0] + i][Coordinate2[1]] = 7;
+			}
+		}
+	}
+	if (Coordinate3[3] == 1) {
+		if (Coordinate3[2] == 2) {
+			for (int i = 1; i < 4; i++) {
+				if (Coordinate3[1] + i > 9 || Sermap[Coordinate3[0]][Coordinate3[1] + i] == 1) {
+					break;
+				}
+				Sermap[Coordinate3[0]][Coordinate3[1] + i] = 6;
+			}
+		}
+		if (Coordinate3[2] == 3) {
+			for (int i = 1; i < 4; i++) {
+				if (Coordinate3[1] + i < 0 || Sermap[Coordinate3[0]][Coordinate3[1] + i] == 1) {
+					break;
+				}
+				Sermap[Coordinate3[0]][Coordinate3[1] - i] = 6;
+			}
+		}
+		if (Coordinate3[2] == 4) {
+			for (int i = 1; i < 4; i++) {
+				if (Coordinate3[0] - i < 0 || Sermap[Coordinate3[0] - i][Coordinate3[1]] == 1) {
+					break;
+				}
+				Sermap[Coordinate3[0] - i][Coordinate3[1]] = 7;
+			}
+		}
+		if (Coordinate3[2] == 5) {
+			for (int i = 1; i < 4; i++) {
+				if (Coordinate3[0] + i > 9 || Sermap[Coordinate3[0] + i][Coordinate3[1]] == 1) {
+					break;
+				}
+				Sermap[Coordinate3[0] + i][Coordinate3[1]] = 7;
 			}
 		}
 	}
@@ -210,7 +255,7 @@ void SK::Ser_gs() {
 	while (1) {
 		con1();
 		con2();
-		//	con3();
+		con3();
 		shoot();
 		print();
 	}
