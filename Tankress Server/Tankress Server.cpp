@@ -373,7 +373,7 @@ SK ::~SK() {
 	if (Coordinate3[2] != 0) {
 		cout << "\n\n  3번 플레이어가 우승했습니다. " << endl;
 	}
-	system("pause");
+	system("PAUSE");
 }
 int main() {
 	SK b;
