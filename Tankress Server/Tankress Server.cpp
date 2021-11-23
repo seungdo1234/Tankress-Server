@@ -43,6 +43,7 @@ public:
 	void con2();
 	void con3();
 	void trans();
+	~SK();
 };
 SK::SK() {
 	Sermap[1][3] = 1;
@@ -119,10 +120,26 @@ void SK::Ser_open() {
 			break;
 		}
 	}
-	cout << "  게임모드를 설정하시오. 1) 비안개모드 2) 안개모드 : ";
-	cin >> index[0];
-	cout << "\n  탱크이동시간을 설정하시오 (500~1000) : ";
-	cin >> index[1];
+	while(1) {
+		cout << "  게임모드를 설정하시오. 1) 비안개모드 2) 안개모드 : ";
+		cin >> index[0];
+		if ((index[0] == 1 && index[0] != 0) || (index[0] != 1 && index[0] == 0)) {
+			break;
+		}
+		else {
+			cout << "  게임모드는 1) 과 2) 중에 다시 선택하세요. \n";
+		}
+	}
+	while (1) {
+		cout << "  탱크이동시간을 설정하시오 (500~1000) : ";
+		cin >> index[1];
+		if (index[1] >= 500 && index[1] <=1000) {
+			break;
+		}
+		else {
+			cout << "  탱크이동시간은 500~1000 사이 입니다. 다시 설정하세요. \n";
+		}
+	}
 	system("cls");
 	for (int i = 0; i < 2; i++) {
 		index[i] = ntohl(index[i]);
@@ -289,11 +306,13 @@ void SK::trans() {
 				we[0] = ntohl(2);
 				Coordinate1[4] = ntohl(2);
 				index[0] = 2;
+				tmp = 0;
 			}
 			else if (index[0] == 2) {
 				we[0] = ntohl(1);
 				Coordinate1[4] = ntohl(1);
 				index[0] = 1;
+				tmp = 0;
 			}
 		}
 	}
@@ -305,10 +324,19 @@ void SK::Ser_gs() {
 		con2();
 		con3();
 		print();
+		if ((Coordinate1[2] != 0 && Coordinate2[2] == 0 && Coordinate3[2] == 0) || (Coordinate1[2] == 0 && Coordinate2[2] != 0 && Coordinate3[2] == 0) || (Coordinate1[2] == 0 && Coordinate2[2] == 0 && Coordinate3[2] != 0)) {
+			return;
+		}
 	}
 }
 void SK::print() {
 	system("cls");
+	if (index[0] == 1) {
+		cout << "\n    비안개 모드 \n" << endl;
+	}
+	if (index[0] == 2) {
+		cout << "\n    안개 모드 \n" << endl;
+	}
 	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 10; j++) {
 			if (Sermap[i][j] == 0) cout << "□";
@@ -328,15 +356,22 @@ void SK::print() {
 		}
 		cout << endl;
 	}
-	if (index[0] == 1) {
-		cout << "\n 비안개 모드" << endl;
-	}
-	if (index[0] == 2) {
-		cout << "\n 안개 모드" << endl;
-	}
+	cout << "\n\n모드를 변경 할려면 m키를 누르시오. \n" << endl;
 	Sermap[Coordinate2[0]][Coordinate2[1]] = 0;
 	Sermap[Coordinate1[0]][Coordinate1[1]] = 0;
 	Sermap[Coordinate3[0]][Coordinate3[1]] = 0;
+}
+SK ::~SK() {
+	system("cls");
+	if (Coordinate1[2] != 0) {
+		cout << "\n\n  1번 플레이어가 우승했습니다. " << endl;
+	}
+	if (Coordinate2[2] != 0) {
+		cout << "\n\n  2번 플레이어가 우승했습니다. " << endl;
+	}
+	if (Coordinate3[2] != 0) {
+		cout << "\n\n  3번 플레이어가 우승했습니다. " << endl;
+	}
 }
 int main() {
 	SK b;
