@@ -30,6 +30,7 @@ private:
 	int clientNumber = 0;
 	int player[4] = { 0, };
 	int allClientSocket[100];
+	int we[1] = { 0, };
 	SOCKET servsoc;
 	SOCKET clisoc;
 	int index[3] = { 0 , };
@@ -41,7 +42,7 @@ public:
 	void con1();
 	void con2();
 	void con3();
-	void shoot();
+	void trans();
 };
 SK::SK() {
 	Sermap[1][3] = 1;
@@ -137,9 +138,11 @@ void SK::Ser_open() {
 }
 void SK::con1() {
 	recv(allClientSocket[0], (char*)Coordinate1, sizeof(Coordinate1), 0);
+	trans();
+	send(allClientSocket[0], (char*)we, sizeof(we), 0);
 	send(allClientSocket[1], (char*)Coordinate1, sizeof(Coordinate1), 0);
 	send(allClientSocket[2], (char*)Coordinate1, sizeof(Coordinate1), 0);
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 4; i++) {
 		Coordinate1[i] = ntohl(Coordinate1[i]);
 	}
 	if (Coordinate1[3] == 1) {
@@ -183,7 +186,7 @@ void SK::con2() {
 	recv(allClientSocket[1], (char*)Coordinate2, sizeof(Coordinate2), 0);
 	send(allClientSocket[0], (char*)Coordinate2, sizeof(Coordinate2), 0);
 	send(allClientSocket[2], (char*)Coordinate2, sizeof(Coordinate2), 0);
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 4; i++) {
 		Coordinate2[i] = ntohl(Coordinate2[i]);
 	}
 
@@ -221,13 +224,19 @@ void SK::con2() {
 			}
 		}
 	}
-	Sermap[Coordinate2[0]][Coordinate2[1]] = Coordinate2[2];
+	if (Sermap[Coordinate2[0]][Coordinate2[1]] == 6) {
+		Sermap[Coordinate2[0]][Coordinate2[1]] = 6;
+	}
+	else if (Sermap[Coordinate2[0]][Coordinate2[1]] == 7) {
+		Sermap[Coordinate2[0]][Coordinate2[1]] = 7;
+	}
+	else Sermap[Coordinate2[0]][Coordinate2[1]] = Coordinate2[2];
 }
 void SK::con3() {
 	recv(allClientSocket[2], (char*)Coordinate3, sizeof(Coordinate3), 0);
 	send(allClientSocket[0], (char*)Coordinate3, sizeof(Coordinate3), 0);
 	send(allClientSocket[1], (char*)Coordinate3, sizeof(Coordinate3), 0);
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 4; i++) {
 		Coordinate3[i] = ntohl(Coordinate3[i]);
 	}
 	if (Coordinate3[3] == 1) {
@@ -264,11 +273,30 @@ void SK::con3() {
 			}
 		}
 	}
-	Sermap[Coordinate3[0]][Coordinate3[1]] = Coordinate3[2];
+	if (Sermap[Coordinate3[0]][Coordinate3[1]] == 6) {
+		Sermap[Coordinate3[0]][Coordinate3[1]] = 6;
+	}
+	else if (Sermap[Coordinate3[0]][Coordinate3[1]] == 7) {
+		Sermap[Coordinate3[0]][Coordinate3[1]] = 7;
+	}
+	else Sermap[Coordinate3[0]][Coordinate3[1]] = Coordinate3[2];
 }
-void SK::shoot() {
-
-
+void SK::trans() {
+	if (kbhit()) {
+		int tmp = _getch();
+		if (tmp == 77 || tmp == 109) {
+			if (index[0] == 1) {
+				we[0] = ntohl(2);
+				Coordinate1[4] = ntohl(2);
+				index[0] = 2;
+			}
+			else if (index[0] == 2) {
+				we[0] = ntohl(1);
+				Coordinate1[4] = ntohl(1);
+				index[0] = 1;
+			}
+		}
+	}
 }
 void SK::Ser_gs() {
 	Ser_open();
@@ -276,7 +304,6 @@ void SK::Ser_gs() {
 		con1();
 		con2();
 		con3();
-	//	shoot();
 		print();
 	}
 }
@@ -285,21 +312,27 @@ void SK::print() {
 	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 10; j++) {
 			if (Sermap[i][j] == 0) cout << "□";
-			if (Sermap[i][j] == 1) cout << "■";
-			if (Sermap[i][j] == 2) cout << "▶";
-			if (Sermap[i][j] == 3) cout << "◀";
-			if (Sermap[i][j] == 4) cout << "▲";
-			if (Sermap[i][j] == 5) cout << "▼";
-			if (Sermap[i][j] == 6) {
+			else if (Sermap[i][j] == 1) cout << "■";
+			else if (Sermap[i][j] == 2) cout << "▶";
+			else if (Sermap[i][j] == 3) cout << "◀";
+			else  if (Sermap[i][j] == 4) cout << "▲";
+			else if (Sermap[i][j] == 5) cout << "▼";
+			else if (Sermap[i][j] == 6) {
 				cout << "ㅡ";
 				Sermap[i][j] = 0;
 			}
-			if (Sermap[i][j] == 7) {
+			else if (Sermap[i][j] == 7) {
 				cout << "ㅣ";
 				Sermap[i][j] = 0;
 			}
 		}
 		cout << endl;
+	}
+	if (index[0] == 1) {
+		cout << "\n 비안개 모드" << endl;
+	}
+	if (index[0] == 2) {
+		cout << "\n 안개 모드" << endl;
 	}
 	Sermap[Coordinate2[0]][Coordinate2[1]] = 0;
 	Sermap[Coordinate1[0]][Coordinate1[1]] = 0;
