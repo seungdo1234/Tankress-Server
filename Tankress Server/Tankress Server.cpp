@@ -34,6 +34,7 @@ private:
 	SOCKET servsoc;
 	SOCKET clisoc;
 	int index[3] = { 0 , };
+	int y, z, q;
 public:
 	SK();
 	void Ser_open();
@@ -123,7 +124,7 @@ void SK::Ser_open() {
 	while(1) {
 		cout << "  게임모드를 설정하시오. 1) 비안개모드 2) 안개모드 : ";
 		cin >> index[0];
-		if ((index[0] == 1 && index[0] != 0) || (index[0] != 1 && index[0] == 0)) {
+		if ((index[0] == 1 && index[0] != 2) || (index[0] != 1 && index[0] == 2)) {
 			break;
 		}
 		else {
@@ -154,7 +155,8 @@ void SK::Ser_open() {
 	Sleep(3000);
 }
 void SK::con1() {
-	recv(allClientSocket[0], (char*)Coordinate1, sizeof(Coordinate1), 0);
+	y =recv(allClientSocket[0], (char*)Coordinate1, sizeof(Coordinate1), 0);
+	if (y == -1) return;
 	trans();
 	send(allClientSocket[0], (char*)we, sizeof(we), 0);
 	send(allClientSocket[1], (char*)Coordinate1, sizeof(Coordinate1), 0);
@@ -197,10 +199,10 @@ void SK::con1() {
 		}
 	}
 	Sermap[Coordinate1[0]][Coordinate1[1]] = Coordinate1[2];
-
 }
 void SK::con2() {
-	recv(allClientSocket[1], (char*)Coordinate2, sizeof(Coordinate2), 0);
+	z= recv(allClientSocket[1], (char*)Coordinate2, sizeof(Coordinate2), 0);
+	if (z == -1) return;
 	send(allClientSocket[0], (char*)Coordinate2, sizeof(Coordinate2), 0);
 	send(allClientSocket[2], (char*)Coordinate2, sizeof(Coordinate2), 0);
 	for (int i = 0; i < 4; i++) {
@@ -250,7 +252,8 @@ void SK::con2() {
 	else Sermap[Coordinate2[0]][Coordinate2[1]] = Coordinate2[2];
 }
 void SK::con3() {
-	recv(allClientSocket[2], (char*)Coordinate3, sizeof(Coordinate3), 0);
+	q= recv(allClientSocket[2], (char*)Coordinate3, sizeof(Coordinate3), 0);
+	if (q == -1) return;
 	send(allClientSocket[0], (char*)Coordinate3, sizeof(Coordinate3), 0);
 	send(allClientSocket[1], (char*)Coordinate3, sizeof(Coordinate3), 0);
 	for (int i = 0; i < 4; i++) {
@@ -324,9 +327,7 @@ void SK::Ser_gs() {
 		con2();
 		con3();
 		print();
-		if ((Coordinate1[2] != 0 && Coordinate2[2] == 0 && Coordinate3[2] == 0) || (Coordinate1[2] == 0 && Coordinate2[2] != 0 && Coordinate3[2] == 0) || (Coordinate1[2] == 0 && Coordinate2[2] == 0 && Coordinate3[2] != 0)) {
-			return;
-		}
+		if (y == -1 && z == -1 && q == -1) return;
 	}
 }
 void SK::print() {
@@ -372,6 +373,7 @@ SK ::~SK() {
 	if (Coordinate3[2] != 0) {
 		cout << "\n\n  3번 플레이어가 우승했습니다. " << endl;
 	}
+	system("pause");
 }
 int main() {
 	SK b;
