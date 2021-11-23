@@ -16,35 +16,20 @@ using namespace std;
 HANDLE  mutex;
 unsigned  threadID;
 
+int Coordinate1[5] = { 0, };
+int Coordinate2[5] = { 0, };
+int Coordinate3[5] = { 0, };
 
 class SK {
-private:
-	WSADATA wsdata;
-	sockaddr_in serverAddress;
-	struct sockaddr_in clientAddress;
-	int clientAddressSize = sizeof(clientAddress);
-	int Sermap[10][10] = { 0, };
+public:
 	int Coordinate1[5] = { 0, };
 	int Coordinate2[5] = { 0, };
 	int Coordinate3[5] = { 0, };
 	int clientNumber = 0;
-	int player[4] = { 0, };
+	int Sermap[10][10] = { 0, };
 	int allClientSocket[100];
-	int we[1] = { 0, };
-	SOCKET servsoc;
-	SOCKET clisoc;
-	int index[3] = { 0 , };
-	int y, z, q;
-public:
+	virtual void  Ser_gs(void) = 0;
 	SK();
-	void Ser_open();
-	void print();
-	void Ser_gs();
-	void con1();
-	void con2();
-	void con3();
-	void trans();
-	~SK();
 };
 SK::SK() {
 	Sermap[1][3] = 1;
@@ -68,7 +53,30 @@ SK::SK() {
 	Sermap[8][7] = 1;
 	Sermap[8][8] = 1;
 }
-void SK::Ser_open() {
+
+class SK_C :public SK {
+private:
+	int player[4] = { 0, };
+	int we[1] = { 0, };
+	int index[3] = { 0 , };
+	int y, z, q;
+	WSADATA wsdata;
+	sockaddr_in serverAddress;
+	struct sockaddr_in clientAddress;
+	int clientAddressSize = sizeof(clientAddress);
+	SOCKET servsoc;
+	SOCKET clisoc;
+public:
+	void Ser_open();
+	void print();
+	void con1();
+	void con2();
+	void con3();
+	void trans();
+	void Ser_gs(void);
+	~SK_C();
+};
+void SK_C::Ser_open() {
 	if (WSAStartup(MAKEWORD(2, 2), &wsdata) != 0) {
 		cout << "WS2_32.DLL 을 초기화 하는데 실패했습니다. " << endl;
 		return;
@@ -154,7 +162,7 @@ void SK::Ser_open() {
 	cout << "\n  탱크리스를 시작하겠습니다. " << endl;
 	Sleep(3000);
 }
-void SK::con1() {
+void SK_C::con1() {
 	y =recv(allClientSocket[0], (char*)Coordinate1, sizeof(Coordinate1), 0);
 	if (y == -1) return;
 	trans();
@@ -200,7 +208,7 @@ void SK::con1() {
 	}
 	Sermap[Coordinate1[0]][Coordinate1[1]] = Coordinate1[2];
 }
-void SK::con2() {
+void SK_C::con2() {
 	z= recv(allClientSocket[1], (char*)Coordinate2, sizeof(Coordinate2), 0);
 	if (z == -1) return;
 	send(allClientSocket[0], (char*)Coordinate2, sizeof(Coordinate2), 0);
@@ -251,7 +259,7 @@ void SK::con2() {
 	}
 	else Sermap[Coordinate2[0]][Coordinate2[1]] = Coordinate2[2];
 }
-void SK::con3() {
+void SK_C::con3() {
 	q= recv(allClientSocket[2], (char*)Coordinate3, sizeof(Coordinate3), 0);
 	if (q == -1) return;
 	send(allClientSocket[0], (char*)Coordinate3, sizeof(Coordinate3), 0);
@@ -301,7 +309,7 @@ void SK::con3() {
 	}
 	else Sermap[Coordinate3[0]][Coordinate3[1]] = Coordinate3[2];
 }
-void SK::trans() {
+void SK_C::trans() {
 	if (kbhit()) {
 		int tmp = _getch();
 		if (tmp == 77 || tmp == 109) {
@@ -320,7 +328,7 @@ void SK::trans() {
 		}
 	}
 }
-void SK::Ser_gs() {
+void SK_C::Ser_gs(void) {
 	Ser_open();
 	while (1) {
 		con1();
@@ -330,7 +338,7 @@ void SK::Ser_gs() {
 		if (y == -1 && z == -1 && q == -1) return;
 	}
 }
-void SK::print() {
+void SK_C::print() {
 	system("cls");
 	if (index[0] == 1) {
 		cout << "\n    비안개 모드 \n" << endl;
@@ -362,7 +370,7 @@ void SK::print() {
 	Sermap[Coordinate1[0]][Coordinate1[1]] = 0;
 	Sermap[Coordinate3[0]][Coordinate3[1]] = 0;
 }
-SK ::~SK() {
+SK_C ::~SK_C() {
 	system("cls");
 	if (Coordinate1[2] != 0) {
 		cout << "\n\n  1번 플레이어가 우승했습니다. " << endl;
@@ -373,10 +381,9 @@ SK ::~SK() {
 	if (Coordinate3[2] != 0) {
 		cout << "\n\n  3번 플레이어가 우승했습니다. " << endl;
 	}
-	system("PAUSE");
 }
 int main() {
-	SK b;
+	SK_C b;
 
 	b.Ser_gs();
 
