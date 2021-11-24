@@ -9,32 +9,32 @@
 using namespace std;
 
 #define PORT 23000 /*서버와 클라이언트간에 데이터를 주고 받을 포트번호*/
-#define BUFFER_SIZE 100 
 
 #pragma comment (lib , "ws2_32.lib")
 #pragma warning(disable:4996)
+
 HANDLE  mutex;
 unsigned  threadID;
-SOCKET servsoc;
-SOCKET clisoc;
-int clientNumber = 0;
-int player[4] = { 0, };
-int allClientSocket[100];
+SOCKET servsoc; //서버소켓
+SOCKET clisoc; //클라이언트소켓
+int clientNumber = 0; // 클라이언트 접속수
+int player[4] = { 0, }; // 클라이언트에게 뿌려줄 상태값
+int allClientSocket[100]; //클라이언트 소켓이 들어가있는 배열
 struct sockaddr_in clientAddress;
 int clientAddressSize = sizeof(clientAddress);
+int index[3] = { 0 , }; // 이동속도, 모드설정 클라이언트 총 인원이 들어가있는 배열
 class SK {
 public:
-	int Sermap[10][10] = { 0, };
-	int Coordinate1[6] = { 0, };
+	int Sermap[10][10] = { 0, }; //맵
+	int Coordinate1[6] = { 0, }; //각좌표
 	int Coordinate2[6] = { 0, };
 	int Coordinate3[6] = { 0, };
-	int we[1] = { 0, };
-	int y = 4;
-	int index[3] = { 0 , };
-	virtual void  Ser_gs(void) = 0;
-	SK();
+	int y = 4; //리턴 값
+	virtual void  Ser_gs(void) = 0; //게임시작 추상클래스
+	SK();  // 실행될때 맵을 찍어주는 생성자
+	~SK(); // 게임이 끝나고 우승자를 알려주는 소멸자
 };
-SK::SK() {
+SK::SK() { //생성자
 	Sermap[1][3] = 1;
 	Sermap[1][4] = 1;
 	Sermap[2][3] = 1;
@@ -55,18 +55,18 @@ SK::SK() {
 	Sermap[7][8] = 1;
 	Sermap[8][7] = 1;
 	Sermap[8][8] = 1;
-}
+} 
 
-class SK_C :public SK {
+class SK_C :public SK { //
 private:
 	WSADATA wsdata;
 	sockaddr_in serverAddress;
 public:
-	void Ser_open();
-	void print();
+	void Ser_open(); //게임시작전 서버 열기
+	void print(); //맵 찍기
 	static unsigned __stdcall con(void* arg);
-	void Ser_gs(void);
-	~SK_C();
+	static unsigned __stdcall wp(void* arg);
+	void Ser_gs(void); //게임시작
 };
 void SK_C::Ser_open() {
 	if (WSAStartup(MAKEWORD(2, 2), &wsdata) != 0) {
@@ -92,15 +92,12 @@ void SK_C::Ser_open() {
 		return;
 	}
 	cout << "\n  탱크리스 서버가 만들어졌습니다.\n" << endl;
-	cout << "\n  게임을 시작할려면 ENTER를 누르시오.   (최소인원 1명) \n\n";
+	cout << "\n  게임을 시작할려면 ENTER를 누르시오.   (최소인원 2명) \n\n";
 	unsigned long thread;
 	thread = _beginthreadex(NULL, 0, con, (void*)Sermap, 0, &threadID);
-	while (clientNumber == 0) {
-	
-	}
 	while (1) {
 		int tmp = _getch();
-		if (tmp == 13) {
+		if (tmp == 13 && clientNumber >= 2) {
 			break;
 		}
 	}
@@ -165,12 +162,8 @@ unsigned __stdcall SK_C::con(void* arg) {
 		clientNumber++;
 	}
 }
-void SK_C::Ser_gs(void) {
-	Ser_open();
-
+unsigned __stdcall SK_C::wp(void* arg) {
 	while (1) {
-		y = recv(allClientSocket[0], (char*)Coordinate1, sizeof(Coordinate1), 0);
-		if (y == -1) return;
 		if (kbhit()) {
 			int tmp = _getch();
 			if (tmp == 77 || tmp == 109) {
@@ -184,6 +177,15 @@ void SK_C::Ser_gs(void) {
 				}
 			}
 		}
+	}
+}
+void SK_C::Ser_gs(void) {
+	Ser_open();
+	unsigned long thread;
+	thread = _beginthreadex(NULL, 0, con, (void*)Sermap, 0, &threadID);
+	while (1) {
+		y = recv(allClientSocket[0], (char*)Coordinate1, sizeof(Coordinate1), 0);
+		if (y == -1) return;
 		if (index[2] > 1) {
 			send(allClientSocket[1], (char*)Coordinate1, sizeof(Coordinate1), 0);
 		}
@@ -383,7 +385,7 @@ void SK_C::print() {
 		Sermap[Coordinate3[0]][Coordinate3[1]] = 0;
 	}
 }
-SK_C ::~SK_C() {
+SK ::~SK() {
 	system("cls");
 	if (Coordinate1[2] != 0) {
 		cout << "\n\n  1번 플레이어가 우승했습니다. " << endl;
