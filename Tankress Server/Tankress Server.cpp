@@ -32,7 +32,6 @@ public:
 	int y = 4; //리턴 값
 	virtual void  Ser_gs(void) = 0; //게임시작 추상클래스
 	SK();  // 실행될때 맵을 찍어주는 생성자
-	~SK(); // 게임이 끝나고 우승자를 알려주는 소멸자
 };
 SK::SK() { //생성자
 	Sermap[1][3] = 1;
@@ -66,6 +65,7 @@ public:
 	void print(); //맵 찍기
 	static unsigned __stdcall con(void* arg);
 	void Ser_gs(void); //게임시작
+	~SK_C(); // 게임이 끝나고 우승자를 알려주는 소멸자
 };
 void SK_C::Ser_open() { //서버시작
 	if (WSAStartup(MAKEWORD(2, 2), &wsdata) != 0) {
@@ -91,7 +91,7 @@ void SK_C::Ser_open() { //서버시작
 		return;
 	}
 	cout << "\n  탱크리스 서버가 만들어졌습니다.\n" << endl;
-	cout << "\n  게임을 시작할려면 ENTER를 누르시오.   (최소인원 2명) \n\n";
+	cout << "\n  게임을 시작할려면 ENTER를 누르시오.   (게임시작 인원 2명 ~ 3명) \n\n";
 	unsigned long thread;
 	thread = _beginthreadex(NULL, 0, con, (void*)Sermap, 0, &threadID);
 	while (1) {
@@ -159,6 +159,9 @@ unsigned __stdcall SK_C::con(void* arg) { //
 		}
 		send(allClientSocket[clientNumber], (char*)player, sizeof(player), 0);
 		clientNumber++;
+		if (clientNumber == 3) {
+			return 0;
+		}
 	}
 }
 
@@ -379,7 +382,7 @@ void SK_C::print() {
 		Sermap[Coordinate3[0]][Coordinate3[1]] = 0;
 	}
 }
-SK ::~SK() {
+SK_C ::~SK_C() {
 	system("cls");
 	if (Coordinate1[2] != 0) {
 		cout << "\n\n  1번 플레이어가 우승했습니다. " << endl;
