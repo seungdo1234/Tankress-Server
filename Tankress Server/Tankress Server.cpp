@@ -57,7 +57,7 @@ SK::SK() { //생성자
 	Sermap[8][8] = 1;
 } 
 
-class SK_C :public SK { //
+class SK_C :public SK { // 자식 클래스
 private:
 	WSADATA wsdata;
 	sockaddr_in serverAddress;
@@ -65,10 +65,9 @@ public:
 	void Ser_open(); //게임시작전 서버 열기
 	void print(); //맵 찍기
 	static unsigned __stdcall con(void* arg);
-	static unsigned __stdcall wp(void* arg);
 	void Ser_gs(void); //게임시작
 };
-void SK_C::Ser_open() {
+void SK_C::Ser_open() { //서버시작
 	if (WSAStartup(MAKEWORD(2, 2), &wsdata) != 0) {
 		cout << "WS2_32.DLL 을 초기화 하는데 실패했습니다. " << endl;
 		return;
@@ -102,7 +101,7 @@ void SK_C::Ser_open() {
 		}
 	}
 	while (1) {
-		cout << "  게임모드를 설정하시오. 1) 비안개모드 2) 안개모드 : ";
+		cout << "\n  게임모드를 설정하시오. 1) 비안개모드 2) 안개모드 : ";
 		cin >> index[0];
 		if ((index[0] == 1 && index[0] != 2) || (index[0] != 1 && index[0] == 2)) {
 			break;
@@ -135,7 +134,7 @@ void SK_C::Ser_open() {
 	cout << "\n  탱크리스를 시작하겠습니다. " << endl;
 	Sleep(3000);
 }
-unsigned __stdcall SK_C::con(void* arg) {
+unsigned __stdcall SK_C::con(void* arg) { //
 	while (1) {
 		allClientSocket[clientNumber] = accept(servsoc, (struct sockaddr*)&clientAddress, &clientAddressSize);
 		cout << "  " << clientNumber + 1 << "번째 플레이어가 접속 했습니다.  서버 인원 : [" << clientNumber + 1 << "/3]" << endl;
@@ -162,27 +161,9 @@ unsigned __stdcall SK_C::con(void* arg) {
 		clientNumber++;
 	}
 }
-unsigned __stdcall SK_C::wp(void* arg) {
-	while (1) {
-		if (kbhit()) {
-			int tmp = _getch();
-			if (tmp == 77 || tmp == 109) {
-				if (index[0] == 1) {
-					index[0] = 2;
-					tmp = 0;
-				}
-				else if (index[0] == 2) {
-					index[0] = 1;
-					tmp = 0;
-				}
-			}
-		}
-	}
-}
+
 void SK_C::Ser_gs(void) {
 	Ser_open();
-	unsigned long thread;
-	thread = _beginthreadex(NULL, 0, con, (void*)Sermap, 0, &threadID);
 	while (1) {
 		y = recv(allClientSocket[0], (char*)Coordinate1, sizeof(Coordinate1), 0);
 		if (y == -1) return;
@@ -339,6 +320,19 @@ void SK_C::Ser_gs(void) {
 			}
 			else Sermap[Coordinate3[0]][Coordinate3[1]] = Coordinate3[2];
 		}
+		if (kbhit()) {
+			int tmp = _getch();
+			if (tmp == 77 || tmp == 109) {
+				if (index[0] == 1) {
+					index[0] = 2;
+					tmp = 0;
+				}
+				else if (index[0] == 2) {
+					index[0] = 1;
+					tmp = 0;
+				}
+			}
+		}
 		print();
 	}
 }
@@ -402,7 +396,6 @@ SK ::~SK() {
 }
 int main() {
 	SK_C b;
-
 	b.Ser_gs();
-
+	return 0;
 }
